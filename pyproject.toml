@@ -1,0 +1,23 @@
+[project]
+name = "iam-policy-linter"
+version = "0.1.0"
+description = "Find risky IAM configurations in an AWS account."
+requires-python = ">=3.10"
+dependencies = ["boto3>=1.34", "rich>=13"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "moto[iam]>=5"]
+
+[project.scripts]
+iam-linter = "iam_linter.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
