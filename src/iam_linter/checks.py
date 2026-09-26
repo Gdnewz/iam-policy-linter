@@ -85,7 +85,25 @@ def check_service_wildcard(policy: Policy) -> list[Finding]:
       * Only flag when Resource contains "*" — "s3:*" on one specific bucket
         is a much smaller problem.
     """
-    raise NotImplementedError("exercise 1")
+    findings: list[Finding] = []
+    for stmt in statements(policy):
+        if not is_allow(stmt):
+            continue
+        for action in actions_of(stmt):
+            if action.endswith(":*") and "*" in resources_of(stmt):
+                severity = "HIGH" if action.split(":")[0] in ("iam", "sts") else "MEDIUM"
+                findings.append(
+                    Finding(
+                        severity=severity,
+                        check="service-wildcard",
+                        policy_name=policy.name,
+                        resource=policy.attached_to or policy.arn,
+                        message=f'Statement allows Action "{action}" on Resource "*" (service-level wildcard).',
+                        statement=stmt,
+                    )
+                )
+    return findings
+    raise NotImplementedError()
 
 
 # Actions that should basically never be allowed without a Condition.

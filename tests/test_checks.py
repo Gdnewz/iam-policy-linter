@@ -60,7 +60,7 @@ def test_run_checks_aggregates():
 
 # -------------------------------------------------------------- exercises --
 
-@pytest.mark.xfail(raises=NotImplementedError, reason="exercise 1")
+
 class TestServiceWildcard:
     def test_flags_s3_star_on_all_resources(self):
         stmt = {"Effect": "Allow", "Action": "s3:*", "Resource": "*"}
