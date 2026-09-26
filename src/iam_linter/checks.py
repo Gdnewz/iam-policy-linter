@@ -132,14 +132,35 @@ def check_sensitive_action_without_condition(policy: Policy) -> list[Finding]:
       * Put the matched action name in the message so the reader knows
         which one fired.
     """
-    raise NotImplementedError("exercise 2")
+    findings: list[Finding] = []
+    for stmt in statements(policy):
+        if not is_allow(stmt):
+            continue
+        for action in actions_of(stmt):
+            if action not in SENSITIVE_ACTIONS:
+                continue
+            if stmt.get("Condition") is None:
+                severity = "MEDIUM"
+                message = f'Statement allows sensitive Action "{action}" without a Condition.'
+                findings.append(
+                    Finding(
+                        severity=severity,
+                        check="sensitive-no-condition",
+                        policy_name=policy.name,
+                        resource=policy.attached_to or policy.arn,
+                        message=message,
+                        statement=stmt,
+                    )
+                )
+    return findings
+    
 
 
 # Registry: the CLI runs everything in this list. Add a check here to enable it.
 ALL_CHECKS = [
     check_wildcard_admin,
-    # check_service_wildcard,                     # uncomment after exercise 1
-    # check_sensitive_action_without_condition,   # uncomment after exercise 2
+    check_service_wildcard,                     # uncomment after exercise 1
+    check_sensitive_action_without_condition,   # uncomment after exercise 2
 ]
 
 

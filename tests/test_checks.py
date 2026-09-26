@@ -77,7 +77,7 @@ class TestServiceWildcard:
         assert check_service_wildcard(make_policy(stmt)) == []
 
 
-@pytest.mark.xfail(raises=NotImplementedError, reason="exercise 2")
+
 class TestSensitiveActionWithoutCondition:
     def test_flags_passrole_without_condition(self):
         stmt = {"Effect": "Allow", "Action": "iam:PassRole", "Resource": "*"}
