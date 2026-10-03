@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from .models import Finding, Policy
 
+import boto3
 
 # ----------------------------------------------------------------- helpers --
 
@@ -103,7 +104,6 @@ def check_service_wildcard(policy: Policy) -> list[Finding]:
                     )
                 )
     return findings
-    raise NotImplementedError()
 
 
 # Actions that should basically never be allowed without a Condition.
@@ -154,13 +154,33 @@ def check_sensitive_action_without_condition(policy: Policy) -> list[Finding]:
                 )
     return findings
     
+def check_no_mfa_users(users: list[dict]) -> list[Finding]:
+    """MEDIUM: Users without MFA enabled.
 
+    Exercise 3. Hints:
+      * Each user dict has "user" and "mfa_enabled" keys.
+      * The resource string should be the username, e.g. "user/alice".
+    """
+    findings: list[Finding] = []
+    for user in users:
+        if not user.get("mfa_enabled"):
+            findings.append(
+                Finding(
+                    severity="MEDIUM",
+                    check="no-mfa",
+                    policy_name="N/A",
+                    resource=f"user/{user.get('user')}",
+                    message=f'User "{user.get("user")}" does not have MFA enabled.',
+                )
+            )
+    return findings
 
 # Registry: the CLI runs everything in this list. Add a check here to enable it.
 ALL_CHECKS = [
     check_wildcard_admin,
     check_service_wildcard,                     # uncomment after exercise 1
     check_sensitive_action_without_condition,   # uncomment after exercise 2
+    check_no_mfa_users,                         # uncomment after exercise 3
 ]
 
 

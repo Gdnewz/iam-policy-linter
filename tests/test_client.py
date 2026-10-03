@@ -54,7 +54,7 @@ def test_inline_policies_across_principal_types(iam):
     assert {p.attached_to for p in policies} == {"user/alice", "role/Deploy", "group/devs"}
 
 
-@pytest.mark.xfail(raises=NotImplementedError, reason="exercise 3")
+
 def test_mfa_status(iam):
     iam.create_user(UserName="console-user")
     iam.create_login_profile(UserName="console-user", Password="Xx-not-a-real-password-1")

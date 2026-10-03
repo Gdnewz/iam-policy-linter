@@ -111,8 +111,25 @@ def get_users_with_mfa_status(iam=None) -> list[dict]:
         "API-only user". Catch iam.exceptions.NoSuchEntityException.
       * list_mfa_devices(UserName=...) returns a list; empty == no MFA.
     """
-    raise NotImplementedError("exercise 3")
+    iam = iam or boto3.client("iam")
+    users = []
+    paginator = iam.get_paginator("list_users")
+    for page in paginator.paginate():
+        for u in page["Users"]:
+            user_name = u["UserName"]
+            try:
+                iam.get_login_profile(UserName=user_name)
+                has_console_password = True
+            except iam.exceptions.NoSuchEntityException:
+                has_console_password = False
 
+            mfa_devices = iam.list_mfa_devices(UserName=user_name)["MFADevices"]
+            mfa_enabled = bool(mfa_devices)
+            users.append({"user": user_name,
+                           "has_console_password": has_console_password, 
+                           "mfa_enabled": mfa_enabled})
+    
+    return users
 
 def get_access_keys(iam=None) -> list[dict]:
     """Return [{"user": name, "key_id": id, "status": "Active"|"Inactive", "created": datetime}, ...].
