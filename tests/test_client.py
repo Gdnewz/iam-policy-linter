@@ -67,7 +67,7 @@ def test_mfa_status(iam):
     assert rows["api-only"]["has_console_password"] is False
 
 
-@pytest.mark.xfail(raises=NotImplementedError, reason="exercise 4")
+
 def test_access_keys(iam):
     iam.create_user(UserName="bob")
     iam.create_access_key(UserName="bob")

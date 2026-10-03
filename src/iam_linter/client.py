@@ -16,10 +16,11 @@ boto3 concepts you'll meet here
 """
 
 from __future__ import annotations
-
+from time import timezone
+from datetime import datetime, timezone
 import boto3
 
-from .models import Policy
+from .models import Finding, Policy
 
 
 def _as_list(x):
@@ -139,4 +140,42 @@ def get_access_keys(iam=None) -> list[dict]:
       * "CreateDate" is a timezone-aware datetime. Compare with
         datetime.now(timezone.utc), never datetime.now().
     """
-    raise NotImplementedError("exercise 4")
+    iam = iam or boto3.client("iam")
+    access_keys = []
+    paginator = iam.get_paginator("list_users")
+    for page in paginator.paginate():
+        for u in page["Users"]:
+            user_name = u["UserName"]
+            keys_page = iam.list_access_keys(UserName=user_name)
+            for key in keys_page["AccessKeyMetadata"]:
+                access_keys.append({
+                    "user": user_name,
+                    "key_id": key["AccessKeyId"],
+                    "status": key["Status"],
+                    "created": key["CreateDate"]
+                })
+    return access_keys
+
+def check_stale_access_key(key_rows, now=None) -> list[Finding]:
+    """MEDIUM: Access keys older than 90 days.
+
+    Hints:
+      * key_rows is the output of get_access_keys().
+      * now is a timezone-aware datetime. Compare with key["created"].
+    """
+   
+    findings: list[Finding] = []
+    now = now or datetime.now(timezone.utc)
+    for key in key_rows:
+        age_days = (now - key["created"]).days
+        if age_days > 90:
+            findings.append(
+                Finding(
+                    severity="MEDIUM",
+                    check="stale-access-key",
+                    policy_name="N/A",
+                    resource=f"user/{key['user']}",
+                    message=f"Access key {key['key_id']} is {age_days} days old.",
+                )
+            )
+    return findings
